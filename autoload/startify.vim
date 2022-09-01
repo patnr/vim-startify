@@ -563,6 +563,9 @@ function! s:display_by_path(path_prefix, path_format, use_env) abort
   let entry_format = "s:leftpad .'['. index .']'. repeat(' ', (3 - strlen(index))) ."
   let entry_format .= exists('*StartifyEntryFormat') ? StartifyEntryFormat() : 'entry_path'
 
+  let s:D = fnamemodify(fnamemodify(resolve(expand('~/D', 1)), ':p:h'), ':~')[2:]
+  let s:P = fnamemodify(fnamemodify(resolve(expand('~/P', 1)), ':p:h'), ':~')[2:]
+
   if !empty(oldfiles)
     if exists('s:last_message')
       call s:print_section_header()
@@ -570,7 +573,12 @@ function! s:display_by_path(path_prefix, path_format, use_env) abort
 
     for [absolute_path, entry_path] in oldfiles
       let index = s:get_index_as_string()
-      call append('$', eval(entry_format))
+
+      let entry = eval(entry_format)
+      let entry = fnamemodify(entry, ":gs?" . s:P . "?P?")
+      let entry = fnamemodify(entry, ":gs?" . s:D . "?D?")
+      call append('$', entry)
+
       if has('win32')
         let absolute_path = substitute(absolute_path, '\[', '\[[]', 'g')
       endif
