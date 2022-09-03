@@ -563,8 +563,12 @@ function! s:display_by_path(path_prefix, path_format, use_env) abort
   let entry_format = "s:leftpad .'['. index .']'. repeat(' ', (3 - strlen(index))) ."
   let entry_format .= exists('*StartifyEntryFormat') ? StartifyEntryFormat() : 'entry_path'
 
-  let s:D = fnamemodify(fnamemodify(resolve(expand('~/D', 1)), ':p:h'), ':~')[2:]
-  let s:P = fnamemodify(fnamemodify(resolve(expand('~/P', 1)), ':p:h'), ':~')[2:]
+  " Insert symlink targets {D,P}. As done for ~/.vim/plugged/fzf.vim/autoload/fzf/vim.vim
+  let s:D = fnamemodify(fnamemodify(resolve(expand('~/D', 1)), ':p:h'), ':~')
+  let s:P = fnamemodify(fnamemodify(resolve(expand('~/P', 1)), ':p:h'), ':~')
+  " Strip leading "~/" *or* "/"
+  let s:D = substitute(s:D, "^[~/]*", "", "")
+  let s:P = substitute(s:P, "^[~/]*", "", "")
 
   if !empty(oldfiles)
     if exists('s:last_message')
@@ -575,8 +579,8 @@ function! s:display_by_path(path_prefix, path_format, use_env) abort
       let index = s:get_index_as_string()
 
       let entry = eval(entry_format)
-      let entry = fnamemodify(entry, ":gs?" . s:P . "?P?")
-      let entry = fnamemodify(entry, ":gs?" . s:D . "?D?")
+      let entry = fnamemodify(entry, ":gs?[~/]*" . s:P . "?~/P?")
+      let entry = fnamemodify(entry, ":gs?[~/]*" . s:D . "?~/D?")
       call append('$', entry)
 
       if has('win32')
